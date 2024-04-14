@@ -5,6 +5,10 @@ import (
 	"net/url"
 )
 
+type RequestParams struct {
+	model string `json:"model"`
+}
+
 type OpenAIConfig struct {
 	model       string
 	temperature float64
