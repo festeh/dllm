@@ -45,9 +45,11 @@ func (o *OpenAI) CreateHandler() (handler http.HandlerFunc) {
 
 func (o *OpenAI) CreateRequest(params RequestParams) (request *http.Request, err error) {
 	// create request
+	parsedURL, err := url.Parse("https://api.openai.com/v1/chat/completions")
 	request = &http.Request{
 		Method: "POST",
-		URL:    &url.URL{Path: "https://api.openai.com/v1/chat/completions"},
+		URL:    parsedURL,
+		Header: make(http.Header),
 	}
 	request.Header.Set("Authorization", "Bearer "+o.authToken)
 	request.Header.Set("Content-Type", "application/json")
@@ -62,11 +64,7 @@ func (o *OpenAI) CreateRequest(params RequestParams) (request *http.Request, err
 	return request, nil
 }
 
-type Stream struct {
-	response *http.Response
-}
-
-func (o *OpenAI) Ask(query string) (stream* Stream, err error) {
+func (o *OpenAI) Ask(query string) (stream *Stream, err error) {
 	messages := []Message{
 		{Role: "system", Content: "You are a helpful assistant."},
 		{Role: "user", Content: query},
