@@ -22,9 +22,9 @@ type RequestParams struct {
 }
 
 type OpenAIConfig struct {
-	model       string
-	temperature float64
-	maxTokens   int
+	Model       string
+	Temperature float64
+	MaxTokens   int
 }
 
 type OpenAI struct {
@@ -62,28 +62,32 @@ func (o *OpenAI) CreateRequest(params RequestParams) (request *http.Request, err
 	return request, nil
 }
 
-func (o *OpenAI) Ask(query string) (response *http.Response, err error) {
+type Stream struct {
+	response *http.Response
+}
+
+func (o *OpenAI) Ask(query string) (stream* Stream, err error) {
 	messages := []Message{
 		{Role: "system", Content: "You are a helpful assistant."},
 		{Role: "user", Content: query},
 	}
 	params := RequestParams{
-		Model:       o.config.model,
+		Model:       o.config.Model,
 		Messages:    messages,
-		Temperature: o.config.temperature,
-		MaxTokens:   o.config.maxTokens,
+		Temperature: o.config.Temperature,
+		MaxTokens:   o.config.MaxTokens,
 	}
 	request, err := o.CreateRequest(params)
 	if err != nil {
 		return nil, err
 	}
-	response, err = o.client.Do(request)
+	response, err := o.client.Do(request)
 	if err != nil {
 		return nil, err
 	}
 	if response.StatusCode != http.StatusOK {
 		return nil, fmt.Errorf("Error: %s. Message: %s", response.Status, response.Body)
 	}
-	return nil, nil
+	return &Stream{response}, nil
 
 }
