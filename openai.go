@@ -1,26 +1,40 @@
 package dllm
 
 import (
+	"bytes"
+	"encoding/json"
+	"fmt"
+	"io"
 	"net/http"
 	"net/url"
 )
 
+type Message struct {
+	Role    string `json:"role"`
+	Content string `json:"content"`
+}
+
 type RequestParams struct {
-	model string `json:"model"`
+	Model       string    `json:"model"`
+	Messages    []Message `json:"messages"`
+	Temperature float64   `json:"temperature"`
+	MaxTokens   int       `json:"max_tokens"`
 }
 
 type OpenAIConfig struct {
 	model       string
 	temperature float64
+	maxTokens   int
 }
 
 type OpenAI struct {
 	authToken string
 	config    OpenAIConfig
+	client    *http.Client
 }
 
 func NewOpenAI(authToken string, config OpenAIConfig) *OpenAI {
-	return &OpenAI{authToken, config}
+	return &OpenAI{authToken, config, &http.Client{}}
 }
 
 func (o *OpenAI) CreateHandler() (handler http.HandlerFunc) {
@@ -29,7 +43,7 @@ func (o *OpenAI) CreateHandler() (handler http.HandlerFunc) {
 	}
 }
 
-func (o *OpenAI) CreateRequest() (request *http.Request) {
+func (o *OpenAI) CreateRequest(params RequestParams) (request *http.Request, err error) {
 	// create request
 	request = &http.Request{
 		Method: "POST",
@@ -39,6 +53,37 @@ func (o *OpenAI) CreateRequest() (request *http.Request) {
 	request.Header.Set("Content-Type", "application/json")
 	request.Header.Set("Accept", "text/event-stream")
 	request.Header.Set("Cache-Control", "no-cache")
-	// create request
-	return request
+	bufData, err := json.Marshal(params)
+	if err != nil {
+		return nil, err
+	}
+	request.Body = io.NopCloser(bytes.NewBuffer(bufData))
+	request.ContentLength = int64(len(bufData))
+	return request, nil
+}
+
+func (o *OpenAI) Ask(query string) (response *http.Response, err error) {
+	messages := []Message{
+		{Role: "system", Content: "You are a helpful assistant."},
+		{Role: "user", Content: query},
+	}
+	params := RequestParams{
+		Model:       o.config.model,
+		Messages:    messages,
+		Temperature: o.config.temperature,
+		MaxTokens:   o.config.maxTokens,
+	}
+	request, err := o.CreateRequest(params)
+	if err != nil {
+		return nil, err
+	}
+	response, err = o.client.Do(request)
+	if err != nil {
+		return nil, err
+	}
+	if response.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("Error: %s. Message: %s", response.Status, response.Body)
+	}
+	return nil, nil
+
 }
