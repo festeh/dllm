@@ -19,6 +19,7 @@ type RequestParams struct {
 	Messages    []Message `json:"messages"`
 	Temperature float64   `json:"temperature"`
 	MaxTokens   int       `json:"max_tokens"`
+	Stream      bool      `json:"stream"`
 }
 
 type OpenAIConfig struct {
@@ -74,6 +75,7 @@ func (o *OpenAI) Ask(query string) (stream *Stream, err error) {
 		Messages:    messages,
 		Temperature: o.config.Temperature,
 		MaxTokens:   o.config.MaxTokens,
+		Stream:      true,
 	}
 	request, err := o.CreateRequest(params)
 	if err != nil {
