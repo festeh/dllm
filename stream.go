@@ -1,6 +1,9 @@
 package dllm
 
-import "net/http"
+import (
+	"bufio"
+	"net/http"
+)
 
 type Callback func(body []byte)
 
@@ -11,13 +14,16 @@ type Stream struct {
 }
 
 func (s *Stream) Read(callback Callback) {
-	buf := make([]byte, BUFFER_SIZE)
+	reader := bufio.NewReader(s.response.Body)
 	for {
-		n, err := s.response.Body.Read(buf)
+		line, _, err := reader.ReadLine()
 		if err != nil {
 			break
 		}
-		callback(buf[:n])
+		if len(line) == 0 {
+			continue
+		}
+		callback(line)
 	}
 }
 

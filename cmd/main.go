@@ -20,7 +20,5 @@ func main() {
 	}
 	fmt.Println("Stream received")
 	defer stream.Close()
-	stream.Read(func(body []byte) {
-		fmt.Println(string(body))
-	})
+	stream.Read(dllm.Print)
 }
