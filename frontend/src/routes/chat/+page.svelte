@@ -5,7 +5,7 @@
 
 	async function sendInput() {
 		console.log('Sending', input);
-		const res = await fetch('http://localhost:4242/dummy', {
+		const res = await fetch('http://localhost:4242/openai', {
 			method: 'POST',
 			headers: {
 				'Content-Type': 'application/json',

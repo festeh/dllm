@@ -3,6 +3,7 @@ package dllm
 import (
 	"encoding/json"
 	"fmt"
+	"net/http"
 )
 
 type Chunk struct {
@@ -28,4 +29,20 @@ func Print(chunk []byte) {
 		fmt.Println(err)
 	}
 	fmt.Print(deserialized.Choices[0].Delta.Content)
+}
+
+func GetWriterCallback(writer http.ResponseWriter) func([]byte) {
+	return func(chunk []byte) {
+		// skip data: prefix
+		chunk = chunk[6:]
+		deserialized := Chunk{}
+		err := json.Unmarshal(chunk, &deserialized)
+		if err != nil {
+			fmt.Println(err)
+		}
+		writer.Write([]byte(deserialized.Choices[0].Delta.Content))
+		if f, ok := writer.(http.Flusher); ok {
+			f.Flush()
+		}
+	}
 }
