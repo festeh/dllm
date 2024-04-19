@@ -1,9 +1,23 @@
-
 <script lang="ts">
-	//
+	import { Input } from 'svelte-ux';
+	let response = '';
+  let input = '';
+
+  function sendInput() {
+    console.log(input)
+  }
+
 </script>
 
 <main class="p-2">
-	<h1 class="text-lg font-semibold">Chat</h1>
-	Let there be chat!
+	<h1 class="text-lg font-semibold text-center">Chat</h1>
+	<div class="p-2 border rounded-xl my-2 mx-4">
+		<Input placeholder="Type your message here" 
+    bind:value={input}
+    on:keyup={e => e.key === 'Enter' && sendInput()}
+    />
+	</div>
+	<div class="border border-primary-400 h-52">
+		{response}
+	</div>
 </main>
