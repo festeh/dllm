@@ -1,6 +1,7 @@
 package dllm
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 )
@@ -11,6 +12,7 @@ type Route struct {
 }
 
 type Server struct {
+	Port     int
 	handlers []Route
 }
 
@@ -22,6 +24,6 @@ func (s *Server) Start() {
 	for _, route := range s.handlers {
 		http.HandleFunc(route.path, route.handler)
 	}
-	log.Println("Starting server on port 8080")
-	http.ListenAndServe(":8080", nil)
+	fmt.Printf("Server listening on port %d\n", s.Port)
+	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", s.Port), nil))
 }
