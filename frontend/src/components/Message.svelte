@@ -2,6 +2,12 @@
 	import { resizeOutputField } from '$lib';
 	import { cls } from 'svelte-ux';
 	import { responseStore } from '../stores/response';
+	import { onMount } from 'svelte';
+
+	onMount(() => {
+		const response = document.getElementById('response');
+		resizeOutputField(response);
+	});
 
 	function onInput(e) {
 		console.log(e);
@@ -20,7 +26,7 @@
 	on:keydown
 	on:keypress
 	class={cls(
-		'text-sm border bg-transparent outline-none resize-none',
+		'border bg-transparent outline-none resize-none',
 		'p-2 mx-4 my-2',
 		'placeholder-surface-content placeholder-opacity-0 group-focus-within:placeholder-opacity-50'
 	)}
