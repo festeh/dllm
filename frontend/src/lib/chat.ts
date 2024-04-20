@@ -66,3 +66,7 @@ export async function send(input: string) {
 export async function stopChat() {
   isChatIdle.set(true);
 }
+
+export function clearChat() {
+  chatHistoryStore.set([]);
+}
