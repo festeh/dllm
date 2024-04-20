@@ -2,6 +2,7 @@ import { resizeOutputField } from "$lib";
 import { get } from "svelte/store";
 import { responseStore } from "../stores/response";
 import { settingsBarStore } from "../stores/settingsBar";
+import { isChatIdle } from "../stores/chatState";
 
 function getUrl() {
   const base = "http://localhost:4242/";
@@ -29,7 +30,11 @@ export async function send(input: string) {
   const reader = res.body!.getReader();
   let done = false;
   responseStore.set('');
+  isChatIdle.set(false);
   while (!done) {
+    if (get(isChatIdle)) {
+      break
+    }
     const { value, done: d } = await reader!.read();
     done = d;
     if (value != undefined && value.length > 0) {
@@ -38,4 +43,9 @@ export async function send(input: string) {
       resizeOutputField(document.getElementById('response'));
     }
   }
+  isChatIdle.set(true);
+}
+
+export async function stopChat() {
+  isChatIdle.set(true);
 }
