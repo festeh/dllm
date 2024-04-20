@@ -2,7 +2,7 @@
 	import { AppBar, AppLayout, Card, Button, NavItem, Tooltip, settings } from 'svelte-ux';
 
 	import { page } from '$app/stores';
-	import '../app.postcss';
+	import '../app.css';
 
 	settings({
 		components: {
@@ -49,7 +49,7 @@
 		/>
 	</nav>
 
-	<AppBar title="Svelte UX Starter">
+	<AppBar title="DLLM">
 		<div slot="actions" class="flex gap-3">
 			<Tooltip title="View repository" placement="left" offset={2}>
 				<Button
