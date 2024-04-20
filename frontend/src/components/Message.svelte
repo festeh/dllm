@@ -1,25 +1,26 @@
 <script lang="ts">
-	import { resizeOutputField } from '$lib';
+	import { resizeMessageBox } from '$lib';
 	import { cls } from 'svelte-ux';
-	import { responseStore } from '../stores/response';
 	import { onMount } from 'svelte';
 
+	export let message;
+
 	onMount(() => {
-		const response = document.getElementById('response');
-		resizeOutputField(response);
+		const elem = document.getElementById(message.id);
+		if (elem) {
+			resizeMessageBox(elem);
+		}
 	});
 
 	function onInput(e) {
 		console.log(e);
-		resizeOutputField(e.target);
+		resizeMessageBox(e.target);
 	}
 </script>
 
 <textarea
-	id={'response'}
-	placeholder={'Waiting...'}
-	required
-	bind:value={$responseStore}
+	id={message.id}
+	bind:value={message.message}
 	on:input={onInput}
 	on:focus
 	on:blur
@@ -28,6 +29,7 @@
 	class={cls(
 		'border bg-transparent outline-none resize-none',
 		'p-2 mx-4 my-2',
-		'placeholder-surface-content placeholder-opacity-0 group-focus-within:placeholder-opacity-50'
+		'placeholder-surface-content placeholder-opacity-0 group-focus-within:placeholder-opacity-50',
+		'overflow-hidden'
 	)}
 />

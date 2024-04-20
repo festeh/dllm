@@ -1,8 +1,8 @@
-import { resizeOutputField } from "$lib";
+import { resizeMessageBox } from "$lib";
 import { get } from "svelte/store";
-import { responseStore } from "../stores/response";
 import { settingsBarStore } from "../stores/settingsBar";
 import { isChatIdle } from "../stores/chatState";
+import { chatHistoryStore } from "../stores/chatHistory";
 
 function getUrl() {
   const base = "http://localhost:4242/";
@@ -19,6 +19,10 @@ function getUrl() {
 
 export async function send(input: string) {
   const url = getUrl();
+  chatHistoryStore.update((history) => [
+    ...history,
+    { id: Math.random().toString(), role: "user", message: input }
+  ])
   const res = await fetch(url, {
     method: 'POST',
     headers: {
@@ -29,8 +33,12 @@ export async function send(input: string) {
   });
   const reader = res.body!.getReader();
   let done = false;
-  responseStore.set('');
   isChatIdle.set(false);
+  const responseId = Math.random().toString()
+  chatHistoryStore.update((history) => [
+    ...history,
+    { id: responseId, role: "assistant", message: '' }
+  ])
   while (!done) {
     if (get(isChatIdle)) {
       break
@@ -39,8 +47,12 @@ export async function send(input: string) {
     done = d;
     if (value != undefined && value.length > 0) {
       const chunk = new TextDecoder().decode(value);
-      responseStore.update(chunk)
-      resizeOutputField(document.getElementById('response'));
+      chatHistoryStore.update((history) => {
+        const last = history[history.length - 1];
+        last.message += chunk;
+        return history;
+      });
+      resizeMessageBox(document.getElementById(responseId));
     }
   }
   isChatIdle.set(true);

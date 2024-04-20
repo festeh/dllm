@@ -3,18 +3,18 @@
 	import { Button } from 'svelte-ux';
 	import { isChatIdle } from '../stores/chatState';
 	import { mdiStopCircleOutline } from '@mdi/js';
-	import { resizeOutputField } from '$lib';
+	import { resizeMessageBox } from '$lib';
 
 	let input = '';
 </script>
 
 <div class="flex p-2 border rounded-xl my-2 mx-4">
 	<textarea
-		class="flex-1 bg-transparent outline-none resize-none p-2"
+		class="flex-1 bg-transparent outline-none resize-none p-2 overflow-hidden"
 		placeholder="Type your message here"
 		bind:value={input}
 		on:keyup={(e) => {
-			resizeOutputField(e.target);
+			resizeMessageBox(e.target);
 			if (e.ctrlKey && e.key === 'Enter') {
 				send(input);
 			}

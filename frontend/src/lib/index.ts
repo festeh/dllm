@@ -1,8 +1,8 @@
 // place files you want to import through the `$lib` alias in this folder.
 //
 
-export function resizeOutputField(target: HTMLElement) {
-  if (target.clientHeight >= target.scrollHeight && target.clientHeight < 50) {
+export function resizeMessageBox(target: HTMLElement) {
+  if (target == null || target.clientHeight >= target.scrollHeight && target.clientHeight < 50) {
     return;
   }
   target.style.height = '10px';
