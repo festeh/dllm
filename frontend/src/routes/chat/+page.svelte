@@ -64,7 +64,6 @@
 				'text-sm border bg-transparent outline-none resize-none',
 				'p-2 mx-4 my-2',
 				'placeholder-surface-content placeholder-opacity-0 group-focus-within:placeholder-opacity-50',
-				settingsClasses.input
 			)}
 		/>
 	</div>
