@@ -34,6 +34,7 @@ func Print(chunk []byte) {
 
 func GetWriterCallback(writer http.ResponseWriter) func([]byte) {
 	return func(chunk []byte) {
+		fmt.Println("Received chunk", string(chunk))
 		// skip data: prefix
 		chunk = chunk[6:]
 		done := []byte("DONE")

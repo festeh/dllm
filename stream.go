@@ -2,7 +2,6 @@ package dllm
 
 import (
 	"bufio"
-	"fmt"
 	"net/http"
 )
 

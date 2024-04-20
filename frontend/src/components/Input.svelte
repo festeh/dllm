@@ -17,12 +17,20 @@
 			resizeMessageBox(e.target);
 			if (e.ctrlKey && e.key === 'Enter') {
 				send(input);
+				input = '';
 			}
 		}}
 	/>
 
 	{#if $isChatIdle}
-		<Button icon="m2 21l21-9L2 3v7l15 2l-15 2z" on:click={() => send(input)} class="p-2" />
+		<Button
+			icon="m2 21l21-9L2 3v7l15 2l-15 2z"
+			on:click={() => {
+				send(input);
+				input = '';
+			}}
+			class="p-2"
+		/>
 	{:else}
 		<Button icon={mdiStopCircleOutline} on:click={stopChat} />
 	{/if}

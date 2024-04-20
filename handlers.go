@@ -18,8 +18,9 @@ func addHeaders(writer http.ResponseWriter) {
 	writer.Header().Set("Access-Control-Allow-Headers", "Content-Type")
 }
 
+
 type OpenAIQuery struct {
-	Message string `json:"message"`
+	Messages []OpenaiMessage `json:"messages"`
 }
 
 func InitOpenAIHandler() http.HandlerFunc {
@@ -57,13 +58,8 @@ func InitOpenAIHandler() http.HandlerFunc {
 			http.Error(writer, err.Error(), http.StatusBadRequest)
 			return
 		}
-		if query.Message == "" {
-			fmt.Println("Empty message")
-			http.Error(writer, "Empty message", http.StatusBadRequest)
-			return
-		}
-		fmt.Println("Decoded message", query.Message)
-		stream, err := openai.Ask(query.Message)
+		fmt.Println("Decoded message", query.Messages)
+		stream, err := openai.Ask(query.Messages)
 		fmt.Println("Sent message to OpenAI")
 		if err != nil {
 			http.Error(writer, err.Error(), http.StatusInternalServerError)

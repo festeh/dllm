@@ -21,15 +21,19 @@ export async function send(input: string) {
   const url = getUrl();
   chatHistoryStore.update((history) => [
     ...history,
-    { id: Math.random().toString(), role: "user", message: input }
+    { id: Math.random().toString(), role: "user", content: input }
   ])
+  let messages = get(chatHistoryStore).map((message) => {
+    return { role: message.role, content: message.content }
+  })
+  messages = [{ role: "system", content: "Hi!" }, ...messages]
   const res = await fetch(url, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
       Connection: 'Keep-Alive'
     },
-    body: JSON.stringify({ message: input })
+    body: JSON.stringify({ messages })
   });
   const reader = res.body!.getReader();
   let done = false;
@@ -37,8 +41,9 @@ export async function send(input: string) {
   const responseId = Math.random().toString()
   chatHistoryStore.update((history) => [
     ...history,
-    { id: responseId, role: "assistant", message: '' }
+    { id: responseId, role: "assistant", content: '' }
   ])
+
   while (!done) {
     if (get(isChatIdle)) {
       break
@@ -49,7 +54,7 @@ export async function send(input: string) {
       const chunk = new TextDecoder().decode(value);
       chatHistoryStore.update((history) => {
         const last = history[history.length - 1];
-        last.message += chunk;
+        last.content += chunk;
         return history;
       });
       resizeMessageBox(document.getElementById(responseId));

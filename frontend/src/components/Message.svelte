@@ -2,7 +2,6 @@
 	import { resizeMessageBox } from '$lib';
 	import { cls } from 'svelte-ux';
 	import { onMount } from 'svelte';
-
 	export let message;
 
 	onMount(() => {
@@ -20,7 +19,7 @@
 
 <textarea
 	id={message.id}
-	bind:value={message.message}
+	bind:value={message.content}
 	on:input={onInput}
 	on:focus
 	on:blur

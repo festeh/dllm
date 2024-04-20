@@ -1,9 +1,9 @@
 import { writable } from "svelte/store";
 
-type ChatMessage = {
+export type ChatMessage = {
   id: string,
-  role: "assistant" | "user",
-  message: string
+  role: "system" | "assistant" | "user",
+  content: string
 }
 
 export const chatHistoryStore = writable<ChatMessage[]>([])

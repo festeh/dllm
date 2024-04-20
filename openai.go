@@ -9,14 +9,14 @@ import (
 	"net/url"
 )
 
-type Message struct {
+type OpenaiMessage struct {
 	Role    string `json:"role"`
 	Content string `json:"content"`
 }
 
 type RequestParams struct {
 	Model       string    `json:"model"`
-	Messages    []Message `json:"messages"`
+	Messages    []OpenaiMessage `json:"messages"`
 	Temperature float64   `json:"temperature"`
 	MaxTokens   int       `json:"max_tokens"`
 	Stream      bool      `json:"stream"`
@@ -65,11 +65,7 @@ func (o *OpenAI) CreateRequest(params RequestParams) (request *http.Request, err
 	return request, nil
 }
 
-func (o *OpenAI) Ask(query string) (stream *Stream, err error) {
-	messages := []Message{
-		{Role: "system", Content: "You are a helpful assistant."},
-		{Role: "user", Content: query},
-	}
+func (o *OpenAI) Ask(messages []OpenaiMessage) (stream *Stream, err error) {
 	params := RequestParams{
 		Model:       o.config.Model,
 		Messages:    messages,
