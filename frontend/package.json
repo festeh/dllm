@@ -16,6 +16,7 @@
     "test:unit": "vitest"
   },
   "devDependencies": {
+    "@capacitor/cli": "^6.0.0",
     "@mdi/js": "^7.4.47",
     "@playwright/test": "^1.28.1",
     "@sveltejs/adapter-auto": "^3.0.0",
@@ -41,7 +42,10 @@
     "vitest": "^1.0.0"
   },
   "dependencies": {
+    "@capacitor/android": "^6.0.0",
+    "@capacitor/core": "^6.0.0",
     "@iconify/svelte": "^3.1.6",
+    "@sveltejs/adapter-static": "^3.0.1",
     "dotenv": "16.4.2"
   }
 }
