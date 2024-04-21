@@ -5,9 +5,6 @@ settings:
   excludeLinksFromLockfile: false
 
 dependencies:
-  '@fortawesome/fontawesome-free':
-    specifier: ^6.5.2
-    version: 6.5.2
   '@iconify/svelte':
     specifier: ^3.1.6
     version: 3.1.6(svelte@4.2.15)
@@ -378,12 +375,6 @@ packages:
     engines: {node: '>=6'}
     requiresBuild: true
     dev: true
-
-  /@fortawesome/fontawesome-free@6.5.2:
-    resolution: {integrity: sha512-hRILoInAx8GNT5IMkrtIt9blOdrqHOnPBH+k70aWUAqPZPgopb9G5EQJFpaBx/S8zp2fC+mPW349Bziuk1o28Q==}
-    engines: {node: '>=6'}
-    requiresBuild: true
-    dev: false
 
   /@humanwhocodes/config-array@0.11.14:
     resolution: {integrity: sha512-3T8LkOmg45BV5FICb15QQMsyUSWrQ8AygVfC7ZG32zOalnqrilm018ZVCw0eapXux8FtA33q8PSRSstjee3jSg==}
