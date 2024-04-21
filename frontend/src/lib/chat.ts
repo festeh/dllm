@@ -4,6 +4,8 @@ import { settingsBarStore } from "../stores/settingsBar";
 import { isChatIdle } from "../stores/chatState";
 import { chatHistoryStore } from "../stores/chatHistory";
 
+import { Client } from '../plugins/client/'
+
 function getUrl() {
   const base = "http://localhost:4242/";
   const settings = get(settingsBarStore);
@@ -17,8 +19,19 @@ function getUrl() {
   }
 }
 
+function produceCallback(responseId: string) {
+  return function clientCallback(chunk: string)  {
+    chatHistoryStore.update((history) => {
+      const last = history[history.length - 1];
+      last.content += chunk;
+      return history;
+    });
+    resizeMessageBox(document.getElementById(responseId));
+    return get(isChatIdle)
+  }
+}
+
 export async function send(input: string) {
-  const url = getUrl();
   chatHistoryStore.update((history) => [
     ...history,
     { id: Math.random().toString(), role: "user", content: input }
@@ -27,39 +40,15 @@ export async function send(input: string) {
     return { role: message.role, content: message.content }
   })
   messages = [{ role: "system", content: "Hi!" }, ...messages]
-  const res = await fetch(url, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Connection: 'Keep-Alive'
-    },
-    body: JSON.stringify({ messages })
-  });
-  const reader = res.body!.getReader();
-  let done = false;
-  isChatIdle.set(false);
+  const body = JSON.stringify({ messages });
   const responseId = Math.random().toString()
   chatHistoryStore.update((history) => [
     ...history,
     { id: responseId, role: "assistant", content: '' }
   ])
-
-  while (!done) {
-    if (get(isChatIdle)) {
-      break
-    }
-    const { value, done: d } = await reader!.read();
-    done = d;
-    if (value != undefined && value.length > 0) {
-      const chunk = new TextDecoder().decode(value);
-      chatHistoryStore.update((history) => {
-        const last = history[history.length - 1];
-        last.content += chunk;
-        return history;
-      });
-      resizeMessageBox(document.getElementById(responseId));
-    }
-  }
+  isChatIdle.set(false);
+  const cb = produceCallback(responseId);
+  const result = await Client.send(getUrl(), body, cb);
   isChatIdle.set(true);
 }
 
