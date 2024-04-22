@@ -1,10 +1,15 @@
 export type CallbackID = string;
 
+export interface SendOptions {
+  model?: string;
+  body?: string;
+}
+
 export interface ClientPlugin {
   send(
-    url: string,
-    body: string,
-    callback: ClientCallback): Promise<CallbackID>;
+    options: SendOptions,
+    callback: ClientCallback
+  ): Promise<CallbackID>;
 }
 
 

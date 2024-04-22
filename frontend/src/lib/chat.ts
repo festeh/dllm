@@ -6,21 +6,9 @@ import { chatHistoryStore } from "../stores/chatHistory";
 
 import { Client } from '../plugins/client/'
 
-function getUrl() {
-  const base = "http://localhost:4242/";
-  const settings = get(settingsBarStore);
-  switch (settings.selected) {
-    case "dummy":
-      return base + "dummy";
-    case "openai":
-      return base + "openai";
-    default:
-      return base + "dummy";
-  }
-}
 
 function produceCallback(responseId: string) {
-  return function clientCallback(chunk: string)  {
+  return function clientCallback(chunk: string) {
     chatHistoryStore.update((history) => {
       const last = history[history.length - 1];
       last.content += chunk;
@@ -48,7 +36,8 @@ export async function send(input: string) {
   ])
   isChatIdle.set(false);
   const cb = produceCallback(responseId);
-  const result = await Client.send(getUrl(), body, cb);
+  const model = get(settingsBarStore).selected;
+  const res = await Client.send({ model, body }, cb);
   isChatIdle.set(true);
 }
 
