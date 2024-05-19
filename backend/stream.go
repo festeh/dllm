@@ -11,6 +11,7 @@ const BUFFER_SIZE = 30
 
 type Stream struct {
 	response *http.Response
+	w 			http.ResponseWriter
 }
 
 func (s *Stream) Read(callback Callback) {
@@ -24,6 +25,9 @@ func (s *Stream) Read(callback Callback) {
 			continue
 		}
 		callback(line)
+		if f, ok := s.w.(http.Flusher); ok {
+			f.Flush()
+		}
 	}
 }
 
