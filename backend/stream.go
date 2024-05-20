@@ -9,16 +9,20 @@ import (
 	"net/http"
 )
 
-type Callback func(body []byte)
+type Callback func(body []byte) ([]byte, bool)
 
 const BUFFER_SIZE = 30
 
-type Stream struct {
-	response *http.Response
-	w        http.ResponseWriter
+type StreamWriter interface {
+	Write([]byte) (int, error)
 }
 
-func NewStream[Q any, D any, A Agent[Q, D]](body []byte, writer http.ResponseWriter, agent A) (*Stream, error) {
+type Stream struct {
+	response *http.Response
+	writer   StreamWriter
+}
+
+func NewStream[Q any, D any, A Agent[Q, D]](body []byte, writer StreamWriter, agent A) (*Stream, error) {
 	query, err := agent.LoadQuery(body)
 	if err != nil {
 		return nil, err
@@ -42,8 +46,8 @@ func NewStream[Q any, D any, A Agent[Q, D]](body []byte, writer http.ResponseWri
 	return &Stream{response, writer}, nil
 }
 
-func (s *Stream) Read(callback Callback) {
-	reader := bufio.NewReader(s.response.Body)
+func (stream *Stream) Read(callback Callback) {
+	reader := bufio.NewReader(stream.response.Body)
 	for {
 		line, _, err := reader.ReadLine()
 		if err != nil {
@@ -52,8 +56,12 @@ func (s *Stream) Read(callback Callback) {
 		if len(line) == 0 {
 			continue
 		}
-		callback(line)
-		if f, ok := s.w.(http.Flusher); ok {
+		result, isDone := callback(line)
+		if isDone {
+			break
+		}
+		stream.writer.Write(result)
+		if f, ok := stream.writer.(http.Flusher); ok {
 			f.Flush()
 		}
 	}

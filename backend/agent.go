@@ -10,8 +10,8 @@ import (
 
 type Agent[Q any, D any] interface {
 	Name() string
-	GetStream(body []byte, writer http.ResponseWriter) (*Stream, error)
-	GetWriterCallback() func([]byte)
+	GetStream(body []byte, writer StreamWriter) (*Stream, error)
+	GetWriterCallback() func([]byte) ([]byte, bool)
 	LoadQuery(body []byte) (Q, error)
 	CreateData(query Q) D
 	CompletionURL() *url.URL

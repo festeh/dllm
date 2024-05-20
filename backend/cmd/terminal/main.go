@@ -4,21 +4,33 @@ import (
 	"fmt"
 	"os"
 	"dllm"
+	"flag"
 )
 
+
 func main() {
-	conf := dllm.OpenAIConfig{
-		Model:       "gpt-4",
-		Temperature: 0.1,
-		MaxTokens:   300,
+	agentType := flag.String("agent", "openai", "Agent to use")
+	flag.Parse()
+	if *agentType != "openai" && *agentType != "anthropic" {
+		fmt.Println("Invalid agent")
+		os.Exit(1)
 	}
-	authToken := os.Getenv("OPENAI_API_KEY")
-	openai := dllm.NewOpenAI(authToken, conf)
-	stream, err := openai.Ask("Compose a poem about a tree.")
+	var agent any
+	var err error
+	if *agentType == "openai" {
+		agent, err = dllm.NewOpenAI()
+	} else {
+		agent, err = dllm.NewAnthropic()
+	}
 	if err != nil {
-		panic(err)
+		fmt.Println(err)
+		os.Exit(1)
 	}
-	fmt.Println("Stream received")
+	stream, err := agent.(dllm.Agent[any, any]).GetStream([]byte{}, os.Stdout)
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
 	defer stream.Close()
-	stream.Read(dllm.Print)
+	stream.Read(agent.(dllm.Agent[any, any]).GetWriterCallback())
 }

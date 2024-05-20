@@ -49,7 +49,7 @@ func (a *Anthropic) addHeaders(request *http.Request) {
 	request.Header.Set("Cache-Control", "no-cache")
 }
 
-func (a *Anthropic) GetStream(body []byte, writer http.ResponseWriter) (*Stream, error) {
+func (a *Anthropic) GetStream(body []byte, writer StreamWriter) (*Stream, error) {
 	return NewStream(body, writer, a)
 }
 
@@ -81,8 +81,8 @@ func (a *Anthropic) do(request *http.Request) (*http.Response, error) {
 	return a.client.Do(request)
 }
 
-func (a *Anthropic) GetWriterCallback() func([]byte) {
-	return func(body []byte) {
-		fmt.Println(string(body))
+func (a *Anthropic) GetWriterCallback() func([]byte) ([]byte, bool) {
+	return func(body []byte) ([]byte, bool) {
+		return body, false
 	}
 }

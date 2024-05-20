@@ -1,8 +1,12 @@
 package dllm
 
 import (
+	"bytes"
+	"encoding/json"
+	"fmt"
 	"net/http"
 	"net/url"
+	"os"
 )
 
 type OpenaiMessage struct {
@@ -27,8 +31,12 @@ type OpenAIQuery struct {
 	Messages []OpenaiMessage `json:"messages"`
 }
 
-func NewOpenAI(authToken string) *OpenAI {
-	return &OpenAI{authToken, &http.Client{}}
+func NewOpenAI() (*OpenAI, error) {
+	authToken := os.Getenv("OPENAI_API_KEY")
+	if authToken == "" {
+		return nil, fmt.Errorf("Environment variable OPENAI_API_KEY not set")
+	}
+	return &OpenAI{authToken, &http.Client{}}, nil
 }
 
 func (o *OpenAI) Name() string {
@@ -39,8 +47,7 @@ func (o *OpenAI) CompletionURL() *url.URL {
 	return ParseUrlYolo("https://api.openai.com/v1/chat/completions")
 }
 
-
-func (o *OpenAI) GetStream(body []byte, writer http.ResponseWriter) (*Stream, error) {
+func (o *OpenAI) GetStream(body []byte, writer StreamWriter) (*Stream, error) {
 	return NewStream(body, writer, o)
 }
 
@@ -74,9 +81,41 @@ func (o *OpenAI) do(request *http.Request) (*http.Response, error) {
 	return o.client.Do(request)
 }
 
-func (o *OpenAI) GetWriterCallback() func([]byte) {
-	return func(body []byte) {
-		// fmt.Fprintf(w, "data: %s\n\n", body)
-	}
+type Chunk struct {
+	Id      string   `json:"id"`
+	Choices []Choice `json:"choices"`
 }
 
+type Choice struct {
+	Index int   `json:"index"`
+	Delta Delta `json:"delta"`
+}
+
+type Delta struct {
+	Content string `json:"content"`
+}
+
+func (o *OpenAI) GetWriterCallback() func([]byte) ([]byte, bool) {
+	return func(chunk []byte) ([]byte, bool) {
+		fmt.Println("Received chunk", string(chunk))
+		// skip data: prefix
+		chunk = chunk[6:]
+		done := []byte("DONE")
+		if bytes.Equal(chunk, done) {
+			fmt.Println("Received DONE")
+			return nil, true
+		}
+		deserialized := Chunk{}
+		err := json.Unmarshal(chunk, &deserialized)
+		if err != nil {
+			fmt.Println("Error deserializing chunk", err)
+			fmt.Println("chunk", string(chunk))
+			return nil, true
+		}
+		if len(deserialized.Choices) == 0 {
+			return nil, true
+		}
+		choice := deserialized.Choices[0]
+		return []byte(choice.Delta.Content), false
+	}
+}
