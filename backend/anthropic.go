@@ -23,7 +23,6 @@ func (a *Anthropic) Name() string {
 }
 
 func (a *Anthropic) addHeaders(request *http.Request) {
-
 	request.Header.Set("x-api-key", a.key)
 	request.Header.Set("anthropic-version", "2023-06-01")
 	request.Header.Set("Content-Type", "application/json")
