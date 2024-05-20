@@ -8,20 +8,19 @@ import (
 	"net/url"
 )
 
-type Agent[Q any, D any] interface {
+type Agent[D any] interface {
 	Name() string
-	GetStream(body []byte, writer StreamWriter) (*Stream, error)
+	GetStream(query *Query, writer StreamWriter) (*Stream, error)
 	GetWriterCallback() func([]byte) ([]byte, bool)
-	LoadQuery(body []byte) (Q, error)
-	CreateData(query Q) D
+	CreateData(query *Query) D
 	CompletionURL() *url.URL
 	addHeaders(request *http.Request)
 	do(request *http.Request) (*http.Response, error)
 }
 
-type Manager[Q any, D any] struct{}
+type Manager[D any] struct{}
 
-func (m *Manager[Q, D]) CreateHandler(agent Agent[Q, D]) (handler http.HandlerFunc) {
+func (m *Manager[D]) CreateHandler(agent Agent[D]) (handler http.HandlerFunc) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		AddHeaders(w)
 		if r.Method != "POST" {
@@ -36,8 +35,13 @@ func (m *Manager[Q, D]) CreateHandler(agent Agent[Q, D]) (handler http.HandlerFu
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
-
-		stream, err := agent.GetStream(b, w)
+		query := &Query{}
+		err = LoadQuery(b, query)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+		stream, err := agent.GetStream(query, w)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return

@@ -20,10 +20,6 @@ type AnthropicData struct {
 	stream      bool
 }
 
-type AnthropicQuery struct {
-	Messages []AnthropicMessage `json:"messages"`
-}
-
 type Anthropic struct {
 	key    string
 	client *http.Client
@@ -49,27 +45,23 @@ func (a *Anthropic) addHeaders(request *http.Request) {
 	request.Header.Set("Cache-Control", "no-cache")
 }
 
-func (a *Anthropic) GetStream(body []byte, writer StreamWriter) (*Stream, error) {
-	return NewStream(body, writer, a)
+func (a *Anthropic) GetStream(query *Query, writer StreamWriter) (*Stream, error) {
+	return NewStream(query, writer, a)
 }
 
 func (a *Anthropic) CompletionURL() *url.URL {
 	return ParseUrlYolo("https://api.anthropic.com/v1/messages")
 }
 
-func (a *Anthropic) LoadQuery(body []byte) (*AnthropicQuery, error) {
-	query := AnthropicQuery{}
-	err := LoadQuery(body, &query)
-	if err != nil {
-		return nil, err
-	}
-	return &query, nil
-}
 
-func (a *Anthropic) CreateData(query *AnthropicQuery) *AnthropicData {
+func (a *Anthropic) CreateData(query *Query) *AnthropicData {
+	messages := make([]AnthropicMessage, len(query.Messages))
+	for i, message := range query.Messages {
+		messages[i] = AnthropicMessage{message.Role, message.Content}
+	}
 	data := &AnthropicData{
 		model:       "claude-3-opus-20240229",
-		messages:    query.Messages,
+		messages:    messages,
 		temperature: 0.1,
 		maxTokens:   300,
 		stream:      true,

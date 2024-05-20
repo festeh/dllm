@@ -27,10 +27,6 @@ type OpenAI struct {
 	client    *http.Client
 }
 
-type OpenAIQuery struct {
-	Messages []OpenaiMessage `json:"messages"`
-}
-
 func NewOpenAI() (*OpenAI, error) {
 	authToken := os.Getenv("OPENAI_API_KEY")
 	if authToken == "" {
@@ -47,23 +43,18 @@ func (o *OpenAI) CompletionURL() *url.URL {
 	return ParseUrlYolo("https://api.openai.com/v1/chat/completions")
 }
 
-func (o *OpenAI) GetStream(body []byte, writer StreamWriter) (*Stream, error) {
-	return NewStream(body, writer, o)
+func (o *OpenAI) GetStream(query *Query, writer StreamWriter) (*Stream, error) {
+	return NewStream(query, writer, o)
 }
 
-func (a *OpenAI) LoadQuery(body []byte) (*OpenAIQuery, error) {
-	query := OpenAIQuery{}
-	err := LoadQuery(body, &query)
-	if err != nil {
-		return nil, err
+func (o *OpenAI) CreateData(query *Query) *OpenAIData {
+	messages := make([]OpenaiMessage, len(query.Messages))
+	for i, message := range query.Messages {
+		messages[i] = OpenaiMessage{message.Role, message.Content}
 	}
-	return &query, nil
-}
-
-func (o *OpenAI) CreateData(query *OpenAIQuery) *OpenAIData {
 	return &OpenAIData{
 		Model:       "gpt-4",
-		Messages:    query.Messages,
+		Messages:    messages,
 		Temperature: 0.1,
 		MaxTokens:   500,
 		Stream:      true,

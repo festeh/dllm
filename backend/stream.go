@@ -22,11 +22,7 @@ type Stream struct {
 	writer   StreamWriter
 }
 
-func NewStream[Q any, D any, A Agent[Q, D]](body []byte, writer StreamWriter, agent A) (*Stream, error) {
-	query, err := agent.LoadQuery(body)
-	if err != nil {
-		return nil, err
-	}
+func NewStream[ D any, A Agent[D]](query *Query, writer StreamWriter, agent A) (*Stream, error) {
 	data := agent.CreateData(query)
 	dataMarshalled, err := json.Marshal(data)
 	if err != nil {
