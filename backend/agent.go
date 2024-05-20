@@ -1,8 +1,6 @@
 package dllm
 
 import (
-	"bytes"
-	"encoding/json"
 	"fmt"
 	"io"
 	"log"
@@ -11,13 +9,12 @@ import (
 
 type Agent interface {
 	Name() string
-	GetStream() (*Stream, error)
+	GetStream(body []byte, writer http.ResponseWriter) (*Stream, error)
 	GetWriterCallback() func([]byte)
 }
 
 type Manager struct{}
 
-// TODO: implement a template method pattern
 func (m *Manager) CreateHandler(agent Agent) (handler http.HandlerFunc) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		AddHeaders(w)
@@ -34,23 +31,15 @@ func (m *Manager) CreateHandler(agent Agent) (handler http.HandlerFunc) {
 			return
 		}
 
-		query := OpenAIQuery{}
-		err = json.NewDecoder(bytes.NewBuffer(b)).Decode(&query)
-		if err != nil {
-			log.Println("Error decoding message")
-			log.Println(err)
-			http.Error(w, err.Error(), http.StatusBadRequest)
-			return
-		}
-
-		stream, err := agent.GetStream()
+		stream, err := agent.GetStream(b, w)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
 		log.Println("Stream received")
+
 		defer stream.Close()
-		stream.Read(agent.GetWriterCallback(w))
+		stream.Read(agent.GetWriterCallback())
 	}
 
 }

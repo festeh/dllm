@@ -1,10 +1,13 @@
 package dllm
 
-import "net/http"
+import (
+	"net/http"
+	"net/url"
+)
 
 type AnthropicMessage struct {
-	Role		string `json:"role"`
-	Content	string `json:"content"`
+	Role    string `json:"role"`
+	Content string `json:"content"`
 }
 
 type AnthropicQuery struct {
@@ -19,7 +22,25 @@ func (a *Anthropic) Name() string {
 	return "Anthropic"
 }
 
-func (a *Anthropic) addHeaders(writer http.ResponseWriter) {
-	AddHeaders(writer)
-	writer.Header().Set("x-api-key", a.key)
+func (a *Anthropic) addHeaders(request *http.Request) {
+
+	request.Header.Set("x-api-key", a.key)
+	request.Header.Set("anthropic-version", "2023-06-01")
+	request.Header.Set("Content-Type", "application/json")
+	request.Header.Set("Cache-Control", "no-cache")
+}
+
+func (a *Anthropic) GetStream(body []byte, writer http.ResponseWriter) (*Stream, error) {
+	request := NewPostRequest(a.CompletionURL())
+	a.addHeaders(request)
+	query := AnthropicQuery{}
+	err := LoadQuery(body, &query)
+	if err != nil {
+		return nil, err
+	}
+	return NewStream(body, writer)
+}
+
+func (a *Anthropic) CompletionURL() *url.URL {
+	return ParseUrlYolo("https://api.anthropic.com/v1/messages")
 }

@@ -15,11 +15,11 @@ type OpenaiMessage struct {
 }
 
 type RequestParams struct {
-	Model       string    `json:"model"`
+	Model       string          `json:"model"`
 	Messages    []OpenaiMessage `json:"messages"`
-	Temperature float64   `json:"temperature"`
-	MaxTokens   int       `json:"max_tokens"`
-	Stream      bool      `json:"stream"`
+	Temperature float64         `json:"temperature"`
+	MaxTokens   int             `json:"max_tokens"`
+	Stream      bool            `json:"stream"`
 }
 
 type OpenAIConfig struct {
@@ -38,10 +38,22 @@ func NewOpenAI(authToken string, config OpenAIConfig) *OpenAI {
 	return &OpenAI{authToken, config, &http.Client{}}
 }
 
-func (o *OpenAI) CreateHandler() (handler http.HandlerFunc) {
-	return func(w http.ResponseWriter, r *http.Request) {
-		// handle request
+func (o *OpenAI) AddHeaders(request *http.Request) {
+	request.Header.Set("Authorization", "Bearer "+o.authToken)
+	request.Header.Set("Content-Type", "application/json")
+	request.Header.Set("Accept", "text/event-stream")
+	request.Header.Set("Cache-Control", "no-cache")
+}
+
+func (o *OpenAI) GetStream(body []byte, writer http.ResponseWriter) (*Stream, error) {
+	request := NewPostRequest(o.CompletionURL())
+	o.AddHeaders(request)
+	query := OpenAIQuery{}
+	err := LoadQuery(body, &query)
+	if err != nil {
+		return nil, err
 	}
+	return NewStream(request, writer)
 }
 
 func (o *OpenAI) CreateRequest(params RequestParams) (request *http.Request, err error) {
@@ -84,6 +96,14 @@ func (o *OpenAI) Ask(messages []OpenaiMessage) (stream *Stream, err error) {
 	if response.StatusCode != http.StatusOK {
 		return nil, fmt.Errorf("Error: %s. Message: %s", response.Status, response.Body)
 	}
-	return &Stream{response}, nil
+	return &Stream{response, w}, nil
 
+}
+
+func (o *OpenAI) Name() string {
+	return "OpenAI"
+}
+
+func (o *OpenAI) CompletionURL() *url.URL {
+	return ParseUrlYolo("https://api.openai.com/v1/chat/completions")
 }
