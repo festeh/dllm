@@ -47,18 +47,19 @@ func (o *OpenAI) GetStream(query *Query, writer StreamWriter) (*Stream, error) {
 	return NewStream(query, writer, o)
 }
 
-func (o *OpenAI) CreateData(query *Query) *OpenAIData {
+func (o *OpenAI) CreateData(query *Query) ([]byte, error) {
 	messages := make([]OpenaiMessage, len(query.Messages))
 	for i, message := range query.Messages {
 		messages[i] = OpenaiMessage{message.Role, message.Content}
 	}
-	return &OpenAIData{
+	data := &OpenAIData{
 		Model:       "gpt-4",
 		Messages:    messages,
 		Temperature: 0.1,
 		MaxTokens:   500,
 		Stream:      true,
 	}
+	return json.Marshal(data)
 }
 
 func (o *OpenAI) addHeaders(request *http.Request) {
@@ -88,12 +89,13 @@ type Delta struct {
 
 func (o *OpenAI) GetWriterCallback() func([]byte) ([]byte, bool) {
 	return func(chunk []byte) ([]byte, bool) {
-		fmt.Println("Received chunk", string(chunk))
+		// TODO: move to zerolog
+		// log.Print("Received chunk", string(chunk))
 		// skip data: prefix
 		chunk = chunk[6:]
-		done := []byte("DONE")
+		done := []byte("[DONE]")
 		if bytes.Equal(chunk, done) {
-			fmt.Println("Received DONE")
+			// fmt.Println("Received DONE")
 			return nil, true
 		}
 		deserialized := Chunk{}

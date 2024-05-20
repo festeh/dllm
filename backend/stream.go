@@ -3,15 +3,12 @@ package dllm
 import (
 	"bufio"
 	"bytes"
-	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
 )
 
 type Callback func(body []byte) ([]byte, bool)
-
-const BUFFER_SIZE = 30
 
 type StreamWriter interface {
 	Write([]byte) (int, error)
@@ -22,9 +19,8 @@ type Stream struct {
 	writer   StreamWriter
 }
 
-func NewStream[ D any, A Agent[D]](query *Query, writer StreamWriter, agent A) (*Stream, error) {
-	data := agent.CreateData(query)
-	dataMarshalled, err := json.Marshal(data)
+func NewStream(query *Query, writer StreamWriter, agent Agent) (*Stream, error) {
+	dataMarshalled, err := agent.CreateData(query)
 	if err != nil {
 		return nil, err
 	}
@@ -37,7 +33,8 @@ func NewStream[ D any, A Agent[D]](query *Query, writer StreamWriter, agent A) (
 		return nil, err
 	}
 	if response.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("Error: %s. Message: %s", response.Status, response.Body)
+		bodyString, _ := io.ReadAll(response.Body)
+		return nil, fmt.Errorf("Error: %s. Message: %s", response.Status, bodyString)
 	}
 	return &Stream{response, writer}, nil
 }

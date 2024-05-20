@@ -15,7 +15,7 @@ func main() {
 		fmt.Println("Invalid agent")
 		os.Exit(1)
 	}
-	var agent any
+	var agent dllm.Agent
 	var err error
 	if *agentType == "openai" {
 		agent, err = dllm.NewOpenAI()
@@ -37,11 +37,11 @@ func main() {
 	query := &dllm.Query{
 		Messages: []dllm.Message{systemMessage, userMessage},
 	}
-	stream, err := agent.(dllm.Agent[any]).GetStream(query, os.Stdout)
+	stream, err := agent.GetStream(query, os.Stdout)
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)
 	}
 	defer stream.Close()
-	stream.Read(agent.(dllm.Agent[any]).GetWriterCallback())
+	stream.Read(agent.GetWriterCallback())
 }

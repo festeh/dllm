@@ -8,19 +8,19 @@ import (
 	"net/url"
 )
 
-type Agent[D any] interface {
+type Agent interface {
 	Name() string
 	GetStream(query *Query, writer StreamWriter) (*Stream, error)
 	GetWriterCallback() func([]byte) ([]byte, bool)
-	CreateData(query *Query) D
+	CreateData(query *Query) ([]byte, error)
 	CompletionURL() *url.URL
 	addHeaders(request *http.Request)
 	do(request *http.Request) (*http.Response, error)
 }
 
-type Manager[D any] struct{}
+type Manager struct{}
 
-func (m *Manager[D]) CreateHandler(agent Agent[D]) (handler http.HandlerFunc) {
+func (m *Manager) CreateHandler(agent Agent) (handler http.HandlerFunc) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		AddHeaders(w)
 		if r.Method != "POST" {

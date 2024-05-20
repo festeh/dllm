@@ -1,6 +1,7 @@
 package dllm
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -13,11 +14,11 @@ type AnthropicMessage struct {
 }
 
 type AnthropicData struct {
-	model       string
-	messages    []AnthropicMessage
-	temperature float32
-	maxTokens   int
-	stream      bool
+	Model       string             `json:"model"`
+	Messages    []AnthropicMessage `json:"messages"`
+	Temperature float32            `json:"temperature"`
+	MaxTokens   int                `json:"max_tokens"`
+	Stream      bool               `json:"stream"`
 }
 
 type Anthropic struct {
@@ -53,20 +54,23 @@ func (a *Anthropic) CompletionURL() *url.URL {
 	return ParseUrlYolo("https://api.anthropic.com/v1/messages")
 }
 
-
-func (a *Anthropic) CreateData(query *Query) *AnthropicData {
-	messages := make([]AnthropicMessage, len(query.Messages))
+func (a *Anthropic) CreateData(query *Query) ([]byte, error) {
+	messages := make([]AnthropicMessage, len(query.Messages)-1)
+	// skip the first message, which is the system message
 	for i, message := range query.Messages {
-		messages[i] = AnthropicMessage{message.Role, message.Content}
+		if i == 0 {
+			continue
+		}
+		messages[i-1] = AnthropicMessage{message.Role, message.Content}
 	}
 	data := &AnthropicData{
-		model:       "claude-3-opus-20240229",
-		messages:    messages,
-		temperature: 0.1,
-		maxTokens:   300,
-		stream:      true,
+		Model:       "claude-3-opus-20240229",
+		Messages:    messages,
+		Temperature: 0.1,
+		MaxTokens:   300,
+		Stream:      true,
 	}
-	return data
+	return json.Marshal(data)
 }
 
 func (a *Anthropic) do(request *http.Request) (*http.Response, error) {
