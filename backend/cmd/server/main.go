@@ -4,8 +4,19 @@ import "dllm"
 
 func main() {
 	server := dllm.Server{Port: 4242}
-	server.AddRoute("/dummy", dllm.DummyHandler)
-	server.AddRoute("/openai", dllm.InitOpenAIHandler())
-	server.AddRoute("/anthropic", dllm.InitAnthropicHandler())
+
+	manager := &dllm.Manager{}
+
+	openai, err := dllm.NewOpenAI()
+	if err == nil {
+		server.AddRoute("/openai", manager.CreateHandler(openai))
+	}
+	anthropic, err := dllm.NewAnthropic()
+	if err == nil {
+		server.AddRoute("/anthropic", manager.CreateHandler(anthropic))
+	}
+
+	// TODO: dummy handler
+	// server.AddRoute("/dummy", dllm.DummyHandler)
 	server.Start()
 }
