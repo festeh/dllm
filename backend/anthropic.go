@@ -1,8 +1,10 @@
 package dllm
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 	"net/url"
 	"os"
@@ -78,7 +80,33 @@ func (a *Anthropic) do(request *http.Request) (*http.Response, error) {
 }
 
 func (a *Anthropic) GetWriterCallback() func([]byte) ([]byte, bool) {
-	return func(body []byte) ([]byte, bool) {
-		return body, false
+	eventHeader := []byte("event")
+	stopSignal := []byte("message_stop")
+	deltaSignal := []byte("content_block_delta")
+	isDelta := false
+	return func(chunk []byte) ([]byte, bool) {
+		if bytes.Equal(chunk[:5], eventHeader) {
+			if bytes.Index(chunk, stopSignal) != -1 {
+				return []byte{}, true
+			}
+			if bytes.Index(chunk, deltaSignal) != -1 {
+				isDelta = true
+			}
+			return []byte{}, false
+		}
+		if isDelta {
+			data := chunk[6:]
+			var delta struct {
+				Delta struct {
+					Text string `json:"text"`
+				} `json:"delta"`
+			}
+			if err := json.Unmarshal([]byte(data), &delta); err != nil {
+				log.Printf("error unmarshalling delta: %s", err)
+				return nil, true
+			}
+			return []byte(delta.Delta.Text), false
+		}
+		return nil, false
 	}
 }
