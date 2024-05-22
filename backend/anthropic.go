@@ -4,10 +4,11 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"log"
 	"net/http"
 	"net/url"
 	"os"
+
+	"github.com/rs/zerolog/log"
 )
 
 type AnthropicMessage struct {
@@ -85,6 +86,7 @@ func (a *Anthropic) GetWriterCallback() func([]byte) ([]byte, bool) {
 	deltaSignal := []byte("content_block_delta")
 	isDelta := false
 	return func(chunk []byte) ([]byte, bool) {
+		log.Debug().Msgf("Received chunk: %s", chunk)
 		if bytes.Equal(chunk[:5], eventHeader) {
 			if bytes.Index(chunk, stopSignal) != -1 {
 				return []byte{}, true

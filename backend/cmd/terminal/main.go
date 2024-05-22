@@ -5,14 +5,22 @@ import (
 	"flag"
 	"fmt"
 	"os"
+
+	"github.com/rs/zerolog"
+	"github.com/rs/zerolog/log"
 )
 
 func main() {
 	agentType := flag.String("agent", "openai", "Agent to use")
 	message := flag.String("message", "", "Message to send")
+	verbose := flag.Bool("verbose", false, "Verbose output")
 	flag.Parse()
+	zerolog.SetGlobalLevel(zerolog.WarnLevel)
+	if *verbose {
+		zerolog.SetGlobalLevel(zerolog.DebugLevel)
+	}
 	if *agentType != "openai" && *agentType != "anthropic" {
-		fmt.Println("Invalid agent")
+		log.Error().Msg("Invalid agent type")
 		os.Exit(1)
 	}
 	var agent dllm.Agent
@@ -23,7 +31,7 @@ func main() {
 		agent, err = dllm.NewAnthropic()
 	}
 	if err != nil {
-		fmt.Println(err)
+		log.Error().Msg(err.Error())
 		os.Exit(1)
 	}
 	systemMessage := dllm.Message{
@@ -43,5 +51,7 @@ func main() {
 		os.Exit(1)
 	}
 	defer stream.Close()
+	log.Debug().Msg("Response begin")
 	stream.Read(agent.GetWriterCallback())
+	log.Debug().Msg("End of response")
 }
