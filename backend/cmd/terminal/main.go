@@ -12,12 +12,21 @@ import (
 
 func main() {
 	agentType := flag.String("agent", "openai", "Agent to use")
+	flag.StringVar(agentType, "a", "openai", "Agent to use")
 	message := flag.String("message", "", "Message to send")
+	flag.StringVar(message, "m", "", "Message to send")
 	verbose := flag.Bool("verbose", false, "Verbose output")
+	flag.BoolVar(verbose, "v", false, "Verbose output")
 	flag.Parse()
 	zerolog.SetGlobalLevel(zerolog.WarnLevel)
 	if *verbose {
 		zerolog.SetGlobalLevel(zerolog.DebugLevel)
+	}
+	if *agentType == "a" {
+		*agentType = "anthropic"
+	}
+	if *agentType == "o" {
+		*agentType = "openai"
 	}
 	if *agentType != "openai" && *agentType != "anthropic" {
 		log.Error().Msg("Invalid agent type")
