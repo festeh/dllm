@@ -57,7 +57,7 @@ func main() {
 	query := &dllm.Query{
 		Messages: []dllm.Message{systemMessage, userMessage},
 	}
-	stream, err := agent.GetStream(query, os.Stdout)
+	stream, err := dllm.NewStream(query, os.Stdout, agent)
 	ExitIfErr(err)
 	defer stream.Close()
 	log.Debug().Msg("Response begin")

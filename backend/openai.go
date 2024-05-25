@@ -43,9 +43,6 @@ func (o *OpenAI) CompletionURL() *url.URL {
 	return ParseUrlYolo("https://api.openai.com/v1/chat/completions")
 }
 
-func (o *OpenAI) GetStream(query *Query, writer StreamWriter) (*Stream, error) {
-	return NewStream(query, writer, o)
-}
 
 func (o *OpenAI) CreateData(query *Query) ([]byte, error) {
 	messages := make([]OpenaiMessage, len(query.Messages))

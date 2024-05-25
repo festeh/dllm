@@ -10,7 +10,6 @@ import (
 
 type Agent interface {
 	Name() string
-	GetStream(query *Query, writer StreamWriter) (*Stream, error)
 	GetWriterCallback() func([]byte) ([]byte, bool)
 	CreateData(query *Query) ([]byte, error)
 	CompletionURL() *url.URL
@@ -41,7 +40,7 @@ func (m *Manager) CreateHandler(agent Agent) (handler http.HandlerFunc) {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
-		stream, err := agent.GetStream(query, w)
+		stream, err := NewStream(query, w, agent)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return

@@ -49,10 +49,6 @@ func (a *Anthropic) addHeaders(request *http.Request) {
 	request.Header.Set("Cache-Control", "no-cache")
 }
 
-func (a *Anthropic) GetStream(query *Query, writer StreamWriter) (*Stream, error) {
-	return NewStream(query, writer, a)
-}
-
 func (a *Anthropic) CompletionURL() *url.URL {
 	return ParseUrlYolo("https://api.anthropic.com/v1/messages")
 }

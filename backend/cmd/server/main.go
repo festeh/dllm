@@ -15,8 +15,9 @@ func main() {
 	if err == nil {
 		server.AddRoute("/anthropic", manager.CreateHandler(anthropic))
 	}
-
-	// TODO: dummy handler
-	// server.AddRoute("/dummy", dllm.DummyHandler)
+	dummy, err := dllm.NewDummy()
+	if err == nil {
+		server.AddRoute("/dummy", manager.CreateHandler(dummy))
+	}
 	server.Start()
 }
