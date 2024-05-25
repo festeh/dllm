@@ -22,6 +22,7 @@ type AnthropicData struct {
 	Temperature float32            `json:"temperature"`
 	MaxTokens   int                `json:"max_tokens"`
 	Stream      bool               `json:"stream"`
+	// System			bool               `json:"system"`
 }
 
 type Anthropic struct {

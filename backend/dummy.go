@@ -77,9 +77,9 @@ func (d *Dummy) do(request *http.Request) (*http.Response, error) {
 	}
 	resp.Body = body
 	go func() {
-		for i := 0; i < 10; i++ {
+		for i := 0; i < 32; i++ {
 			body.strchan <- "Hello\n"
-			time.Sleep(50 * time.Millisecond)
+			time.Sleep(90 * time.Millisecond)
 			log.Debug().Msg("Sent message")
 		}
 		body.done <- true
