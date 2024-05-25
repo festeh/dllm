@@ -35,15 +35,20 @@ func main() {
 	if *agentType == "o" {
 		*agentType = "openai"
 	}
-	if *agentType != "openai" && *agentType != "anthropic" {
+	if *agentType == "d" {
+		*agentType = "dummy"
+	}
+	if *agentType != "openai" && *agentType != "anthropic" && *agentType != "dummy" {
 		ExitIfErr(fmt.Errorf("Invalid agent type: %s", *agentType))
 	}
 	var agent dllm.Agent
 	var err error
 	if *agentType == "openai" {
 		agent, err = dllm.NewOpenAI()
-	} else {
+	} else if *agentType == "anthropic"{
 		agent, err = dllm.NewAnthropic()
+	} else {
+		agent, err = dllm.NewDummy()
 	}
 	ExitIfErr(err)
 	systemMessage := dllm.Message{
@@ -58,6 +63,7 @@ func main() {
 		Messages: []dllm.Message{systemMessage, userMessage},
 	}
 	stream, err := dllm.NewStream(query, os.Stdout, agent)
+	log.Debug().Msgf("Error: %v", err)
 	ExitIfErr(err)
 	defer stream.Close()
 	log.Debug().Msg("Response begin")

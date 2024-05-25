@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+
+	"github.com/rs/zerolog/log"
 )
 
 type Callback func(body []byte) ([]byte, bool)
@@ -42,7 +44,9 @@ func NewStream(query *Query, writer StreamWriter, agent Agent) (*Stream, error) 
 func (stream *Stream) Read(callback Callback) {
 	reader := bufio.NewReader(stream.response.Body)
 	for {
+		log.Debug().Msg("Reading line")
 		line, _, err := reader.ReadLine()
+		log.Debug().Msgf("Read line: %s", line)
 		if err != nil {
 			break
 		}
