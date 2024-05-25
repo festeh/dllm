@@ -10,6 +10,13 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
+func ExitIfErr(err error) {
+	if err != nil {
+		log.Error().Msg(err.Error())
+		os.Exit(1)
+	}
+}
+
 func main() {
 	agentType := flag.String("agent", "openai", "Agent to use")
 	flag.StringVar(agentType, "a", "openai", "Agent to use")
@@ -29,8 +36,7 @@ func main() {
 		*agentType = "openai"
 	}
 	if *agentType != "openai" && *agentType != "anthropic" {
-		log.Error().Msg("Invalid agent type")
-		os.Exit(1)
+		ExitIfErr(fmt.Errorf("Invalid agent type: %s", *agentType))
 	}
 	var agent dllm.Agent
 	var err error
@@ -39,10 +45,7 @@ func main() {
 	} else {
 		agent, err = dllm.NewAnthropic()
 	}
-	if err != nil {
-		log.Error().Msg(err.Error())
-		os.Exit(1)
-	}
+	ExitIfErr(err)
 	systemMessage := dllm.Message{
 		Role:    "system",
 		Content: "Hi!",
@@ -55,10 +58,7 @@ func main() {
 		Messages: []dllm.Message{systemMessage, userMessage},
 	}
 	stream, err := agent.GetStream(query, os.Stdout)
-	if err != nil {
-		fmt.Println(err)
-		os.Exit(1)
-	}
+	ExitIfErr(err)
 	defer stream.Close()
 	log.Debug().Msg("Response begin")
 	stream.Read(agent.GetWriterCallback())
