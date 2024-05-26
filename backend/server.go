@@ -1,7 +1,6 @@
 package dllm
 
 import (
-	"flag"
 	"fmt"
 	"log"
 	"net/http"
@@ -21,16 +20,8 @@ func (s *Server) AddRoute(path string, handler http.HandlerFunc) {
 	s.handlers = append(s.handlers, Route{path, handler})
 }
 
-var VERSION = "development"
 
 func (s *Server) Start() {
-	vers := flag.Bool("version", false, "Print the version number")
-	v := flag.Bool("v", false, "Print the version number")
-	flag.Parse()
-	if *vers || *v {
-		fmt.Println("Version:", VERSION)
-		return
-	}
 	for _, route := range s.handlers {
 		http.HandleFunc(route.path, route.handler)
 	}

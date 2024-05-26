@@ -1,11 +1,11 @@
 package dllm
 
 import (
-	"fmt"
 	"io"
-	"log"
 	"net/http"
 	"net/url"
+
+	"github.com/rs/zerolog/log"
 )
 
 type Agent interface {
@@ -20,23 +20,24 @@ type Agent interface {
 type Manager struct{}
 
 func (m *Manager) CreateHandler(agent Agent) (handler http.HandlerFunc) {
-	return func(w http.ResponseWriter, r *http.Request) {
+	return func(w http.ResponseWriter, request *http.Request) {
 		AddHeaders(w)
-		if r.Method != "POST" {
+		if request.Method != "POST" {
 			w.WriteHeader(http.StatusOK)
 			return
 		}
-		log.Println("Received request")
-		defer r.Body.Close()
-		b, err := io.ReadAll(r.Body)
+		log.Debug().Msg("Received POST request")
+		defer request.Body.Close()
+		b, err := io.ReadAll(request.Body)
 		if err != nil {
-			fmt.Println("Error reading body")
+			log.Error().Msg(err.Error())
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
 		query := &Query{}
 		err = LoadQuery(b, query)
 		if err != nil {
+			log.Error().Msg(err.Error())
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
@@ -45,7 +46,7 @@ func (m *Manager) CreateHandler(agent Agent) (handler http.HandlerFunc) {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
-		log.Println("Stream received")
+		log.Debug().Msg("Stream created")
 
 		defer stream.Close()
 		stream.Read(agent.GetWriterCallback())
