@@ -7,6 +7,8 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+
+	"github.com/rs/zerolog/log"
 )
 
 type OpenaiMessage struct {
@@ -49,12 +51,14 @@ func (o *OpenAI) CreateData(query *Query) ([]byte, error) {
 	for i, message := range query.Messages {
 		messages[i] = OpenaiMessage{message.Role, message.Content}
 	}
+	params := query.Parameters
+	log.Info().Msgf("Creating data with model %s, temperature %f, max tokens %d", params.Model, params.Temperature, params.MaxTokens)
 	data := &OpenAIData{
 		Model:       "gpt-4",
-		Messages:    messages,
 		Temperature: 0.1,
 		MaxTokens:   500,
 		Stream:      true,
+		Messages:    messages,
 	}
 	return json.Marshal(data)
 }
