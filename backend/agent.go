@@ -20,10 +20,10 @@ type Agent interface {
 type Manager struct{}
 
 func (m *Manager) CreateHandler(agent Agent) (handler http.HandlerFunc) {
-	return func(w http.ResponseWriter, request *http.Request) {
-		AddHeaders(w)
+	return func(writer http.ResponseWriter, request *http.Request) {
+		AddHeaders(writer)
 		if request.Method != "POST" {
-			w.WriteHeader(http.StatusOK)
+			writer.WriteHeader(http.StatusOK)
 			return
 		}
 		log.Debug().Msg("Received POST request")
@@ -31,19 +31,19 @@ func (m *Manager) CreateHandler(agent Agent) (handler http.HandlerFunc) {
 		b, err := io.ReadAll(request.Body)
 		if err != nil {
 			log.Error().Msg(err.Error())
-			http.Error(w, err.Error(), http.StatusBadRequest)
+			http.Error(writer, err.Error(), http.StatusBadRequest)
 			return
 		}
 		query := &Query{}
 		err = LoadQuery(b, query)
 		if err != nil {
 			log.Error().Msg(err.Error())
-			http.Error(w, err.Error(), http.StatusBadRequest)
+			http.Error(writer, err.Error(), http.StatusBadRequest)
 			return
 		}
-		stream, err := NewStream(query, w, agent)
+		stream, err := NewStream(query, writer, agent)
 		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
+			http.Error(writer, err.Error(), http.StatusInternalServerError)
 			return
 		}
 		log.Debug().Msg("Stream created")
