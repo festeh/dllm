@@ -3,6 +3,7 @@ package dllm
 import (
 	"bufio"
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
@@ -19,6 +20,12 @@ type StreamWriter interface {
 type Stream struct {
 	response *http.Response
 	writer   StreamWriter
+}
+
+type ModelInfo struct {
+	Model       string  `json:"model"`
+	Temperature float32 `json:"temperature"`
+	MaxTokens   int     `json:"max_tokens"`
 }
 
 func NewStream(query *Query, writer StreamWriter, agent Agent) (*Stream, error) {
@@ -38,13 +45,24 @@ func NewStream(query *Query, writer StreamWriter, agent Agent) (*Stream, error) 
 		bodyString, _ := io.ReadAll(response.Body)
 		return nil, fmt.Errorf("Error: %s. Message: %s", response.Status, bodyString)
 	}
+	modelInfo := ModelInfo{
+		Model:       query.Parameters.Model,
+		Temperature: *query.Parameters.Temperature,
+		MaxTokens:   *query.Parameters.MaxTokens,
+	}
+	modelInfoMarshalled, err := json.Marshal(modelInfo)
+	if err != nil {
+		return nil, err
+	}
+	writer.Write([]byte("dllm:"))
+	writer.Write(modelInfoMarshalled)
+	writer.Write([]byte("\n"))
 	return &Stream{response, writer}, nil
 }
 
 func (stream *Stream) Read(callback Callback) {
 	reader := bufio.NewReader(stream.response.Body)
 	for {
-		log.Debug().Msg("Reading line")
 		line, _, err := reader.ReadLine()
 		log.Debug().Msgf("Read line: %s", line)
 		if err != nil {

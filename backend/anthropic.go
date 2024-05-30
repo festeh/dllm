@@ -22,7 +22,7 @@ type AnthropicData struct {
 	Temperature float32            `json:"temperature"`
 	MaxTokens   int                `json:"max_tokens"`
 	Stream      bool               `json:"stream"`
-	// System			bool               `json:"system"`
+	System      string             `json:"system"`
 }
 
 type Anthropic struct {
@@ -63,12 +63,18 @@ func (a *Anthropic) CreateData(query *Query) ([]byte, error) {
 		}
 		messages[i-1] = AnthropicMessage{message.Role, message.Content}
 	}
+	if query.Parameters.Model == "" {
+		query.Parameters.Model = "claude-3-opus-20240229"
+	}
+	params := query.Parameters
+	log.Info().Msgf("Creating data with model %s, temperature %f, max tokens %d", params.Model, *params.Temperature, *params.MaxTokens)
 	data := &AnthropicData{
-		Model:       "claude-3-opus-20240229",
+		Model:       params.Model,
 		Messages:    messages,
-		Temperature: 0.1,
-		MaxTokens:   300,
+		Temperature: *params.Temperature,
+		MaxTokens:   *params.MaxTokens,
 		Stream:      true,
+		System:      query.Messages[0].Content,
 	}
 	return json.Marshal(data)
 }

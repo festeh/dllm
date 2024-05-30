@@ -19,7 +19,7 @@ type OpenaiMessage struct {
 type OpenAIData struct {
 	Model       string          `json:"model"`
 	Messages    []OpenaiMessage `json:"messages"`
-	Temperature float64         `json:"temperature"`
+	Temperature float32         `json:"temperature"`
 	MaxTokens   int             `json:"max_tokens"`
 	Stream      bool            `json:"stream"`
 }
@@ -51,12 +51,15 @@ func (o *OpenAI) CreateData(query *Query) ([]byte, error) {
 	for i, message := range query.Messages {
 		messages[i] = OpenaiMessage{message.Role, message.Content}
 	}
+	if query.Parameters.Model == "" {
+		query.Parameters.Model = "gpt-4"
+	}
 	params := query.Parameters
-	log.Info().Msgf("Creating data with model %s, temperature %f, max tokens %d", params.Model, params.Temperature, params.MaxTokens)
+	log.Info().Msgf("Creating data with model %s, temperature %f, max tokens %d", params.Model, *params.Temperature, *params.MaxTokens)
 	data := &OpenAIData{
-		Model:       "gpt-4",
-		Temperature: 0.1,
-		MaxTokens:   500,
+		Model:       params.Model,
+		Temperature: *params.Temperature,
+		MaxTokens:   *params.MaxTokens,
 		Stream:      true,
 		Messages:    messages,
 	}
