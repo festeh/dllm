@@ -64,7 +64,7 @@ func (a *Anthropic) CreateData(query *Query) ([]byte, error) {
 		messages[i-1] = AnthropicMessage{message.Role, message.Content}
 	}
 	if query.Parameters.Model == "" {
-		query.Parameters.Model = "claude-3-opus-20240229"
+		query.Parameters.Model = "claude-3-5-sonnet-20240620"
 	}
 	params := query.Parameters
 	log.Info().Msgf("Creating data with model %s, temperature %f, max tokens %d", params.Model, *params.Temperature, *params.MaxTokens)

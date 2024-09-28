@@ -1,7 +1,7 @@
 install_server:
 		@echo "Building dllm server"
 		@cd backend/cmd/server && echo $(shell cat backend/version.txt)
-		@cd backend/cmd/server && go build -o dllm_server -ldflags "-X dllm.VERSION=$(shell cat backend/version.txt)"
+		@cd backend/cmd/server && go build -o dllm_server -ldflags "-X main.Version=$(shell cat backend/version.txt)"
 		@echo "Moving binary to build folder..."
 		@mkdir -p build
 		@mv backend/cmd/server/dllm_server build/

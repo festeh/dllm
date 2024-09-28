@@ -8,14 +8,14 @@ import (
 	"github.com/rs/zerolog"
 )
 
-var VERSION = "development"
+var Version = "development"
 
 func main() {
 	vers := flag.Bool("version", false, "Print the version number")
 	v := flag.Bool("v", false, "Print the version number")
 	flag.Parse()
 	if *vers || *v {
-		fmt.Println("Version:", VERSION)
+		fmt.Println("Version:", Version)
 		return
 	}
 	zerolog.SetGlobalLevel(zerolog.DebugLevel)

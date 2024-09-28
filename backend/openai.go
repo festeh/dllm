@@ -52,7 +52,7 @@ func (o *OpenAI) CreateData(query *Query) ([]byte, error) {
 		messages[i] = OpenaiMessage{message.Role, message.Content}
 	}
 	if query.Parameters.Model == "" {
-		query.Parameters.Model = "gpt-4"
+		query.Parameters.Model = "gpt-4o"
 	}
 	params := query.Parameters
 	log.Info().Msgf("Creating data with model %s, temperature %f, max tokens %d", params.Model, *params.Temperature, *params.MaxTokens)
