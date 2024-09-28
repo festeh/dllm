@@ -4,13 +4,16 @@ import (
 	"dllm"
 	"flag"
 	"fmt"
+	"os"
 
 	"github.com/rs/zerolog"
+	"github.com/rs/zerolog/log"
 )
 
 var Version = "development"
 
 func main() {
+	log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
 	vers := flag.Bool("version", false, "Print the version number")
 	v := flag.Bool("v", false, "Print the version number")
 	flag.Parse()

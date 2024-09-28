@@ -1,4 +1,4 @@
-pdummyackage main
+package main
 
 import (
 	"dllm"
